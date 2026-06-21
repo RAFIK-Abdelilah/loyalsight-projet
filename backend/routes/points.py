@@ -143,3 +143,33 @@ def utiliser_points(client_id: int, body: UtiliserPoints):
     finally:
         cur.close()
         conn.close()
+
+
+@router.get("/{client_id}/transactions")
+def historique_transactions(client_id: int):
+    conn = get_connexion()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM clients WHERE id = %s", (client_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Client introuvable")
+        cur.execute(
+            "SELECT id, type, points, montant, description, date_transaction "
+            "FROM transactions WHERE client_id = %s ORDER BY date_transaction DESC",
+            (client_id,),
+        )
+        colonnes = [desc[0] for desc in cur.description]
+        transactions = []
+        for row in cur.fetchall():
+            t = dict(zip(colonnes, row))
+            if t.get("date_transaction"):
+                t["date_transaction"] = str(t["date_transaction"])
+            transactions.append(t)
+        return {"success": True, "data": transactions, "message": f"{len(transactions)} transaction(s)"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
