@@ -35,6 +35,32 @@ def lister_clients():
         conn.close()
 
 
+@router.get("/stats")
+def stats_dashboard():
+    conn = get_connexion()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "SELECT COUNT(*) AS total_clients, "
+            "COUNT(*) FILTER (WHERE actif = TRUE) AS clients_actifs, "
+            "COUNT(*) FILTER (WHERE segment = 'STANDARD') AS standard, "
+            "COUNT(*) FILTER (WHERE segment = 'SILVER') AS silver, "
+            "COUNT(*) FILTER (WHERE segment = 'GOLD') AS gold, "
+            "COUNT(*) FILTER (WHERE segment = 'PLATINUM') AS platinum "
+            "FROM clients WHERE anonymise = FALSE"
+        )
+        colonnes = [desc[0] for desc in cur.description]
+        stats = dict(zip(colonnes, cur.fetchone()))
+        cur.execute("SELECT COALESCE(SUM(points_cumules), 0) FROM points")
+        stats["total_points_cumules"] = cur.fetchone()[0]
+        return {"success": True, "data": stats, "message": "Statistiques récupérées"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
 @router.get("/{client_id}")
 def obtenir_client(client_id: int):
     conn = get_connexion()
