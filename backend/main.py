@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from routes.clients import router as clients_router
 from routes.points import router as points_router
 from routes.rgpd import router as rgpd_router
+from routes.agent import router as agent_router
 
 app = FastAPI(
     title="LoyalSight API",
@@ -31,6 +32,7 @@ async def gestionnaire_http(request: Request, exc: HTTPException):
 app.include_router(clients_router, prefix="/api/clients", tags=["Clients"])
 app.include_router(points_router, prefix="/api/points", tags=["Points"])
 app.include_router(rgpd_router, prefix="/api/rgpd", tags=["RGPD"])
+app.include_router(agent_router, prefix="/api/agent", tags=["Agent IA"])
 
 
 @app.get("/")
