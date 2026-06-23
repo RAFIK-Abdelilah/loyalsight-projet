@@ -1,18 +1,17 @@
 import os
-import sys
 import psycopg2
-from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 from prompts import SYSTEM_PROMPT
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../backend/.env"))
 
-client_ia = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client_ia = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 def generer_sql(instruction: str) -> str:
     reponse = client_ia.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": instruction},
@@ -48,7 +47,7 @@ def afficher_resultats(resultats: list[dict]):
     colonnes = list(resultats[0].keys())
     largeurs = {col: max(len(col), max(len(str(r[col])) for r in resultats)) for col in colonnes}
     separateur = "+-" + "-+-".join("-" * largeurs[col] for col in colonnes) + "-+"
-    entete = "| " + " | ".join(col.ljust(largeurs[col]) for col in colonnes) + " |"
+    entete    = "| " + " | ".join(col.ljust(largeurs[col]) for col in colonnes) + " |"
     print(separateur)
     print(entete)
     print(separateur)
@@ -60,7 +59,7 @@ def afficher_resultats(resultats: list[dict]):
 
 def run():
     print("=" * 60)
-    print("  LoyalSight — Agent SQL en langage naturel")
+    print("  LoyalSight — Agent SQL (Groq llama-3.3-70b-versatile)")
     print("  Tapez 'quitter' pour arrêter")
     print("=" * 60)
 
