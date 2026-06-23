@@ -22,4 +22,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/rgpd/rgpd.component').then((m) => m.RgpdComponent),
   },
+  {
+    path: 'agent',
+    loadComponent: () =>
+      import('./pages/agent/agent.component').then((m) => m.AgentComponent),
+  },
 ];

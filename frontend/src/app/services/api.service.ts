@@ -25,4 +25,7 @@ export class ApiService {
   anonymiserClient(clientId: number): Observable<any> { return this.http.post(`${BASE}/rgpd/anonymiser/${clientId}`, {}); }
   getDemandes(): Observable<any> { return this.http.get(`${BASE}/rgpd/demandes`); }
   getQualite(): Observable<any> { return this.http.get(`${BASE}/rgpd/qualite`); }
+
+  // ── Agent IA ──────────────────────────────
+  queryAgent(question: string): Observable<any> { return this.http.post(`${BASE}/agent/query`, { question }); }
 }

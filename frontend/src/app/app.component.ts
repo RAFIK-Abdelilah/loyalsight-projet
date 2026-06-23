@@ -12,6 +12,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
         <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
         <li><a routerLink="/clients"   routerLinkActive="active">Clients</a></li>
         <li><a routerLink="/rgpd"      routerLinkActive="active">RGPD</a></li>
+        <li><a routerLink="/agent"     routerLinkActive="active">Agent IA</a></li>
       </ul>
     </nav>
     <main class="main-content">
