@@ -27,4 +27,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/agent/agent.component').then((m) => m.AgentComponent),
   },
+  {
+    path: 'sdk',
+    loadComponent: () =>
+      import('./pages/sdk/sdk.component').then((m) => m.SdkComponent),
+  },
 ];

@@ -28,4 +28,7 @@ export class ApiService {
 
   // ── Agent IA ──────────────────────────────
   queryAgent(question: string): Observable<any> { return this.http.post(`${BASE}/agent/query`, { question }); }
+
+  // ── SDK ───────────────────────────────────
+  getSdkConfig(clientId: number): Observable<any> { return this.http.get(`${BASE}/sdk/config/${clientId}`); }
 }
