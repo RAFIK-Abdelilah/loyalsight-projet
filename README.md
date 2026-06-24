@@ -1,20 +1,137 @@
-# LoyalSight — Simulateur de Programme de Fidélité Client
+# LoyalSight — Programme de fidélité client
 
-Projet personnel développé pour préparer une alternance **Data/IA chez Picard Surgelés**.
-LoyalSight simule un pipeline complet de gestion de fidélité client avec les mêmes outils
-et logiques utilisés en entreprise : CRM, RGPD, API REST et agent IA.
+Simulation complète d'un programme de fidélité client avec base de données PostgreSQL, API FastAPI, interface Angular et agent IA conversationnel (Groq).
 
 ---
 
-## Stack technique
+## Prérequis
 
-| Couche           | Outil               | Version       |
-|------------------|---------------------|---------------|
-| Base de données  | PostgreSQL          | 15            |
-| Backend          | Python FastAPI      | 3.11          |
-| Frontend         | Angular             | 17            |
-| Agent IA         | Python + OpenAI API | gpt-3.5-turbo |
-| Containerisation | Docker Compose      | latest        |
+Avant de commencer, installe les outils suivants :
+
+| Outil | Version minimale | Lien |
+|---|---|---|
+| Docker Desktop | 4.x | https://www.docker.com/products/docker-desktop |
+| Node.js | 18.x | https://nodejs.org |
+| Python | 3.11+ | https://www.python.org |
+
+---
+
+## Installation
+
+### 1. Cloner le projet
+
+```bash
+git clone https://github.com/RAFIK-Abdelilah/loyalsight.git
+cd loyalsight
+```
+
+### 2. Configurer les variables d'environnement
+
+Crée le fichier `backend/.env` à partir de l'exemple suivant :
+
+```env
+DB_HOST=localhost
+DB_PORT=5433
+DB_NAME=loyalsight
+DB_USER=postgres
+DB_PASSWORD=postgres
+GROQ_API_KEY=ta_cle_groq_ici
+```
+
+> **Clé Groq (gratuite)** : crée un compte sur [console.groq.com](https://console.groq.com), génère une clé API et remplace `ta_cle_groq_ici`.
+
+---
+
+## Lancement
+
+### Étape 1 — Démarrer la base de données et le backend
+
+```bash
+docker-compose up --build -d
+```
+
+Docker va :
+- Créer la base PostgreSQL avec toutes les tables
+- Insérer automatiquement 110 clients fictifs (seed)
+- Démarrer l'API FastAPI
+
+Vérifie que tout tourne :
+
+```bash
+docker ps
+```
+
+Tu dois voir `loyalsight_db` (healthy) et `loyalsight_backend` (up).
+
+| Service | URL |
+|---|---|
+| API FastAPI | http://localhost:8001 |
+| Documentation API | http://localhost:8001/docs |
+| PostgreSQL | localhost:5433 |
+
+---
+
+### Étape 2 — Démarrer le frontend Angular
+
+```bash
+cd frontend
+npm install
+npx ng serve
+```
+
+Ouvre ensuite : **http://localhost:4200**
+
+---
+
+### Étape 3 — Lancer l'agent IA (optionnel)
+
+L'agent permet d'interroger la base en français naturel via Groq (LLM gratuit).
+
+#### 3a. Obtenir une clé API Groq (gratuit) Ou OpenAI API si vous avez
+
+1. Va sur **https://console.groq.com**
+2. Crée un compte (Google ou email)
+3. Clique sur **API Keys** → **Create API Key**
+4. Copie la clé (commence par `gsk_...`)
+5. Ouvre le fichier `backend/.env` et remplace `ta_cle_groq_ici` par ta clé :
+
+```env
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Ou
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+#### 3b. Lancer l'agent en ligne de commande
+
+```bash
+# Depuis la racine du projet
+
+# Créer l'environnement virtuel (une seule fois)
+python -m venv .venv
+
+# Activer l'environnement
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # Mac/Linux
+
+# Installer les dépendances
+pip install groq psycopg2-binary python-dotenv
+
+# Lancer l'agent
+cd ai_agent
+python agent.py
+```
+
+#### 3c. Exemples de questions
+
+```
+Combien de clients GOLD ?
+Liste les 3 clients avec le plus de points
+Quelles demandes RGPD sont en attente ?
+Quel est le total des points distribués ?
+Quels clients sont inscrits depuis plus de 3 ans ?
+```
+
+> L'agent est aussi accessible depuis l'interface web sur la page **Agent IA** (http://localhost:4200/agent) sans avoir à lancer le script Python.
 
 ---
 
@@ -22,101 +139,45 @@ et logiques utilisés en entreprise : CRM, RGPD, API REST et agent IA.
 
 ```
 loyalsight/
-├── database/
-│   ├── init.sql          → tables, vues PostgreSQL
-│   └── seed.sql          → 10 clients fictifs français
-├── backend/
-│   ├── main.py           → point d'entrée FastAPI
-│   ├── database.py       → connexion PostgreSQL psycopg2
-│   ├── models/schemas.py → modèles Pydantic
-│   └── routes/
-│       ├── clients.py    → CRUD clients + stats dashboard
-│       ├── points.py     → points fidélité + transactions
-│       └── rgpd.py       → anonymisation et demandes RGPD
-├── frontend/
+├── backend/          # API FastAPI (Python)
+│   ├── routes/       # Endpoints clients, points, RGPD, agent IA
+│   ├── models/       # Schémas Pydantic
+│   ├── main.py
+│   └── .env          # Variables d'environnement (à créer)
+├── frontend/         # Interface Angular 17
 │   └── src/app/
-│       ├── pages/dashboard/   → KPIs + graphique segments
-│       ├── pages/clients/     → tableau clients + filtre
-│       ├── pages/client-detail/ → détail + historique
-│       └── pages/rgpd/        → formulaire + anonymisation
-├── ai_agent/
-│   ├── agent.py          → agent SQL en langage naturel
-│   └── prompts.py        → system prompt avec schéma BDD
-└── docker-compose.yml    → PostgreSQL + backend
+│       └── pages/    # Dashboard, Clients, RGPD, Agent IA
+├── database/
+│   ├── init.sql      # Création des tables
+│   └── seed.sql      # 110 clients fictifs
+├── ai_agent/         # Agent SQL en langage naturel
+│   ├── agent.py
+│   └── prompts.py
+└── docker-compose.yml
 ```
 
 ---
 
-## Lancement du projet
+## Pages disponibles
 
-### Avec Docker
+| Page | URL | Description |
+|---|---|---|
+| Dashboard | /dashboard | KPIs et répartition par segment |
+| Clients | /clients | Liste des 110 clients avec filtre |
+| Détail client | /clients/:id | Points, transactions, infos |
+| RGPD | /rgpd | Demandes et anonymisation |
+| Agent IA | /agent | SQL en langage naturel via Groq |
+
+---
+
+## Arrêter l'application
 
 ```bash
-docker-compose up --build
-# Backend API → http://localhost:8000
-# Swagger     → http://localhost:8000/docs
+docker-compose down
 ```
 
-### Frontend Angular
+Pour supprimer aussi les données :
 
 ```bash
-cd frontend
-npm install
-ng serve
-# Application → http://localhost:4200
+docker-compose down -v
 ```
-
-### Agent IA
-
-```bash
-cd ai_agent
-python agent.py
-# Exemples : "Combien de clients GOLD ?"
-#            "Les 3 clients avec le plus de points"
-```
-
----
-
-## Routes API
-
-| Méthode | Route                            | Description                      |
-|---------|----------------------------------|----------------------------------|
-| GET     | /api/clients/                    | Liste tous les clients           |
-| GET     | /api/clients/stats               | KPIs dashboard                   |
-| GET     | /api/clients/{id}                | Détail d'un client               |
-| POST    | /api/clients/                    | Créer un client                  |
-| PUT     | /api/clients/{id}                | Modifier un client               |
-| GET     | /api/points/{id}                 | Solde de points                  |
-| POST    | /api/points/{id}/ajouter         | Ajouter des points               |
-| POST    | /api/points/{id}/utiliser        | Utiliser des points              |
-| GET     | /api/points/{id}/transactions    | Historique des transactions      |
-| POST    | /api/rgpd/anonymiser/{id}        | Anonymiser un client             |
-| GET     | /api/rgpd/demandes               | Liste des demandes RGPD          |
-| GET     | /api/rgpd/qualite                | Statistiques qualité des données |
-
----
-
-## Variables d'environnement
-
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=loyalsight
-DB_USER=postgres
-DB_PASSWORD=postgres
-OPENAI_API_KEY=sk-...
-```
-
----
-
-## Lien avec l'alternance Picard Surgelés
-
-| Compétence Picard       | Simulation LoyalSight                                 |
-|-------------------------|-------------------------------------------------------|
-| Maxxing (CRM fidélité)  | API FastAPI avec CRUD clients et gestion des points   |
-| RGPD                    | Module d'anonymisation et suivi des demandes          |
-| PostgreSQL              | Base de données avec vues et contraintes d'intégrité  |
-| APIs REST               | Backend FastAPI avec documentation Swagger intégrée   |
-| IA / Copilot            | Agent SQL en langage naturel via OpenAI gpt-3.5-turbo |
-| Angular (dashboard)     | SPA avec KPIs, liste clients, détail et RGPD          |
-| Qualité des données     | Vue vue_qualite_donnees (doublons, manquants, etc.)   |
