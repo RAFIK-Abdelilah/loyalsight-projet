@@ -5,6 +5,7 @@ from routes.clients import router as clients_router
 from routes.points import router as points_router
 from routes.rgpd import router as rgpd_router
 from routes.agent import router as agent_router
+from routes.sdk import router as sdk_router
 
 app = FastAPI(
     title="LoyalSight API",
@@ -33,6 +34,7 @@ app.include_router(clients_router, prefix="/api/clients", tags=["Clients"])
 app.include_router(points_router, prefix="/api/points", tags=["Points"])
 app.include_router(rgpd_router, prefix="/api/rgpd", tags=["RGPD"])
 app.include_router(agent_router, prefix="/api/agent", tags=["Agent IA"])
+app.include_router(sdk_router,   prefix="/api/sdk",   tags=["SDK"])
 
 
 @app.get("/")
